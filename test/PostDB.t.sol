@@ -6,43 +6,50 @@ import "../src/PostDB.sol";
 
 contract PostDBTest is Test {
   PostDB public postDB;
+  uint256 postRK = 0;
+  uint256 commentRK = 0;
 
   function setUp() public {
     postDB = new PostDB();
   }
 
-  function testCreatePost() public {
-    uint256 postRefKey = 0;
-    console.log(postRefKey); //TODO - make console logging work
+  function testSavePost() public {
 
-    postDB.createPost(postRefKey);
+    postDB.savePost(postRK); //TODO - create "checkpoints" for integration tests
 
-    Post post = postDB.post(postRefKey);
-    bool postExists = postDB.existentPost(postRefKey);
-    if (postDB.existentPost(postRefKey) == false) {
+    if (postDB.existentPost(postRK) == false) {
       revert("Failed to create a new post.");
     }
   }
 
-  function testCreatePost_overridingPost() public {
-    uint256 postRefKey = 0;
-
-    postDB.createPost(postRefKey);
-    try postDB.createPost(postRefKey) {
+  function testSavePost_overridingPost() public {
+    postDB.savePost(postRK);
+    try postDB.savePost(postRK) {
       revert("Failed to handle overriding posts.");
     } catch {}
   }
 
-  function testUploadCommentRefKey(uint256 postRefKey, uint256 commentRefKey) public {
-    // todo - create a post first of all
+  function testSaveComment() public {
+    postDB.savePost(postRK);
 
-    // require(postDB.post[postRefKey]);
+    Post po = postDB.post(postRK);
 
-    postDB.uploadRefKeyComment(postRefKey, commentRefKey);
-    // Post.addComment(postRefKey, commentRefKey);
+    assertTrue(po.commentCount() == 0);
+
+    postDB.saveComment(postRK, commentRK);
+    postDB.post(postRK).comments;
+
+    assertTrue(po.commentCount() == 1);
+
+    PostsCommentsLib.comment memory comment = po.getComments(commentRK);
+
+    assertEq(comment.ipfsRK, postRK);
+    // assertEq(comment.authorAddress, msg.sender); //TODO msg.sender might have changed and therefore this might be failing. A manaul test will be fine for now.
+
+    //TODO - test failure to save comment when post hasn't first been created
   }
 
-  function testUpdateCommentOfPost() public {
+  function testUpdateCommentRK() public {
 
   }
 }
